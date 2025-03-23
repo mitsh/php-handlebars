@@ -87,7 +87,6 @@ class HandlebarsSpecTest extends TestCase
             ($spec['it'] === 'literal paths') ||
             ($spec['it'] === 'this keyword nested inside path') ||
             ($spec['it'] === 'this keyword nested inside helpers param') ||
-            ($spec['it'] === 'should handle invalid paths') ||
             ($spec['it'] === 'parameter data throws when using complex scope references') ||
             ($spec['it'] === 'block with complex lookup using nested context')
         ) {
@@ -122,7 +121,6 @@ class HandlebarsSpecTest extends TestCase
 
             // stringParams
             $spec['it'] === 'in string params mode,' ||
-            $spec['it'] === 'as hashes in string params mode' ||
 
             // Decorators are deprecated: https://github.com/wycats/handlebars.js/blob/master/docs/decorators-api.md
             ($spec['description'] === 'blocks - decorators') ||
@@ -162,11 +160,8 @@ class HandlebarsSpecTest extends TestCase
             $spec['it'] === 'each with function argument' && !isset($spec['number']) ||
             $spec['it'] === 'data can be functions' ||
             $spec['it'] === 'data can be functions with params' ||
-               ($spec['it'] === 'provides each nested helper invocation its own options hash') ||
-               ($spec['it'] === 'block functions without context argument') ||
-               ($spec['it'] === 'depthed block functions with context argument') ||
-               $spec['it'] === 'depthed functions with context argument' ||
-               ($spec['it'] === 'block functions with context argument')
+            $spec['it'] === 'depthed block functions with context argument' ||
+            $spec['it'] === 'depthed functions with context argument'
         ) {
             $this->markTestIncomplete('TODO: require fix');
         }
