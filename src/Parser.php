@@ -109,10 +109,10 @@ final class Parser
             $ret[] = $levels;
         }
 
-        if (preg_match('/\\]/', $v)) {
+        if (str_contains($v, ']')) {
             preg_match_all(Token::VARNAME_SEARCH, $v, $matchedAll);
         } else {
-            preg_match_all('/([^\\.\\/]+)/', $v, $matchedAll);
+            preg_match_all('/([^.\\/]+)/', $v, $matchedAll);
         }
 
         if ($v !== '.') {
@@ -239,7 +239,7 @@ final class Parser
                 continue;
             }
 
-            if (preg_match('/^((\\[([^\\]]+)\\])|([^=^["\']+))=(.+)$/', $var, $m)) {
+            if (preg_match('/^((\\[([^\\]]+)\\])|([^=^\\["\']+))=(.+)$/', $var, $m)) {
                 $idx = $m[3] ? $m[3] : $m[4];
                 $var = $m[5];
                 // handle foo=(...)
@@ -251,13 +251,13 @@ final class Parser
 
             if (!preg_match("/^(\"|\\\\')(.*)(\"|\\\\')$/", $var)) {
                 // foo]  Rule 1: no starting [ or [ not start from head
-                if (preg_match('/^[^\\[\\.]+[\\]\\[]/', $var)
+                if (preg_match('/^[^\\[.]+[\\[\\]]/', $var)
                     // [bar  Rule 2: no ending ] or ] not in the end
-                    || preg_match('/[\\[\\]][^\\]\\.]+$/', $var)
+                    || preg_match('/[\\[\\]][^].]+$/', $var)
                     // ]bar. Rule 3: middle ] not before .
-                    || preg_match('/\\][^\\]\\[\\.]+\\./', $var)
+                    || preg_match('/][^\\[.\\]]+\\./', $var)
                     // .foo[ Rule 4: middle [ not after .
-                    || preg_match('/\\.[^\\]\\[\\.]+\\[/', preg_replace('/^(..\\/)+/', '', preg_replace('/\\[[^\\]]+\\]/', '[XXX]', $var)))
+                    || preg_match('/\\.[^\\[.\\]]+\\[/', preg_replace('/^(..\\/)+/', '', preg_replace('/\\[[^\\]]+\\]/', '[XXX]', $var)))
                 ) {
                     $context->error[] = "Wrong variable naming as '$var' in $token !";
                 } else {
@@ -337,7 +337,7 @@ final class Parser
     protected static function analyze(string $token, Context $context): array
     {
         // Do not break quoted strings. Also, allow escaped quotes inside them.
-        $count = preg_match_all('/(\s*)([^"\s]*"(\\\\\\\\.|[^"])*"|[^\'\s]*\'(\\\\\\\\.|[^\'])*\'|\\S+)/', $token, $matches);
+        $count = preg_match_all('/(\s*)([^"\s]*"(\\\\\\\\.|[^"])*"|[^\'\s]*\'(\\\\\\\\.|[^\'])*\'|\S+)/', $token, $matches);
         // Parse arguments and deal with "..." or [...] or (...) or \'...\' or |...|
         if ($count > 0) {
             $vars = [];
