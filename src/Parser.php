@@ -235,7 +235,7 @@ final class Parser
 
             // handle |...|
             if (preg_match(SafeString::IS_BLOCKPARAM_SEARCH, $var, $matched)) {
-                $ret[static::BLOCKPARAM] = explode(' ', $matched[1]);
+                $ret[static::BLOCKPARAM] = preg_split('/\s+/', trim($matched[1]));
                 continue;
             }
 
@@ -366,8 +366,8 @@ final class Parser
                     if ($quote === 0 && $stack > 0 && preg_match('/(.+=)*(\\(+)/', $t, $m) && !$quotes) {
                         $stack += strlen($m[2]);
                     }
-                    // end an argument when end with expected character
-                    if (substr($t, -1, 1) === $expect) {
+                    // end an argument when token ends with expected character (ignoring whitespace + first instance)
+                    if (substr($t, -1, 1) === $expect && !preg_match('/^\s+' . preg_quote($expect) . '$/', $prev)) {
                         if ($stack > 0 && !$quotes) {
                             preg_match('/(\\)+)$/', $t, $matchedq);
                             $stack -= isset($matchedq[0]) ? strlen($matchedq[0]) : 1;

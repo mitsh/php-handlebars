@@ -1399,6 +1399,32 @@ class RegressionTest extends TestCase
             ],
 
             [
+                'id' => 371,
+                'template' => <<<_tpl
+                    {{#myeach '[{"a":"ayy", "b":"bee"},{"a":"zzz", "b":"ccc"}]' as | newContext index | }}
+                    Foo {{newContext.a}} {{index}}
+                    {{/myeach}}
+                    _tpl,
+                'options' => new Options(
+                    helpers: [
+                        'myeach' => function ($context, HelperOptions $options) {
+                            $theArray = json_decode($context, true);
+                            if (!is_array($theArray)) {
+                                return '';
+                            }
+
+                            $ret = '';
+                            foreach ($theArray as $i => $value) {
+                                $ret .= $options->fn([], ['blockParams' => [$value, $i]]);
+                            }
+                            return $ret;
+                        },
+                    ],
+                ),
+                'expected' => "Foo ayy 0\nFoo zzz 1\n",
+            ],
+
+            [
                 'template' => '{{#each . as |v k|}}#{{k}}{{/each}}',
                 'data' => ['a' => [], 'c' => []],
                 'expected' => '#a#c',
