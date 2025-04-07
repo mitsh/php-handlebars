@@ -267,8 +267,10 @@ final class Compiler extends Validator
         } else {
             $p = "'$p[0]'";
         }
-        $sp = $context->tokens['partialind'] ? ", '{$context->tokens['partialind']}'" : '';
-        return $context->ops['separator'] . static::getFuncName($context, 'p', $tag) . "\$cx, $p, $v[0],$pid$sp){$context->ops['separator']}";
+        $sp = "(\$sp ?? '') . '{$context->tokens['partialind']}'";
+        return $context->ops['separator'] .
+            static::getFuncName($context, 'p', $tag) . "\$cx, $p, $v[0], $pid, $sp)" .
+            $context->ops['separator'];
     }
 
     /**

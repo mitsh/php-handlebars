@@ -1871,6 +1871,34 @@ class RegressionTest extends TestCase
             ],
 
             [
+                'template' => <<<_tpl
+                    <div>
+                      {{> partialA}}
+                      {{> partialB}}
+                    </div>
+                    _tpl,
+                'options' => new Options(
+                    partials: [
+                        'partialA' => "<div>\n  Partial A\n  {{> partialB}}\n</div>\n",
+                        'partialB' => "<p>\n  Partial B\n</p>\n",
+                    ],
+                ),
+                'expected' => <<<_result
+                    <div>
+                      <div>
+                        Partial A
+                        <p>
+                          Partial B
+                        </p>
+                      </div>
+                      <p>
+                        Partial B
+                      </p>
+                    </div>
+                    _result,
+            ],
+
+            [
                 'template' => "{{>test1}}\n  {{>test1}}\nDONE\n",
                 'options' => new Options(
                     partials: ['test1' => "1:A\n 2:B\n  3:C\n 4:D\n5:E\n"],

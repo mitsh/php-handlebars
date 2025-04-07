@@ -305,9 +305,8 @@ final class Runtime
      *
      * @param string $p partial name
      * @param array<array|string|int>|string|int|null $v value to be the new context
-     *
      */
-    public static function p(RuntimeContext $cx, string $p, $v, int $pid, $sp = ''): string
+    public static function p(RuntimeContext $cx, string $p, $v, int $pid, string $sp): string
     {
         $pp = ($p === '@partial-block') ? $p . ($pid > 0 ? $pid : $cx->partialId) : $p;
 

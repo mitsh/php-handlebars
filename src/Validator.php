@@ -532,12 +532,12 @@ class Validator
         [$raw, $vars] = Parser::parse($token, $context);
 
         // Handle spacing (standalone tags, partial indent)
-        static::spacing($token, $context, (($token[Token::POS_OP] === '') || ($token[Token::POS_OP] === '&')) && (!isset($vars[0][0]) || ($vars[0][0] !== 'else')) || $context->options->ignoreStandalone);
+        static::spacing($token, $context, ($token[Token::POS_OP] === '' || $token[Token::POS_OP] === '&') && (!isset($vars[0][0]) || $vars[0][0] !== 'else') || $context->options->ignoreStandalone);
 
-        $inlinepartial = static::inlinePartial($context, $vars);
-        $partialblock = static::partialBlock($context, $vars);
+        $inlinePartial = static::inlinePartial($context, $vars);
+        $partialBlock = static::partialBlock($context, $vars);
 
-        if ($partialblock || $inlinepartial) {
+        if ($partialBlock || $inlinePartial) {
             $context->stack = array_slice($context->stack, 0, -4);
             static::pushPartial($context, $context->currentToken[Token::POS_LOTHER] . $context->currentToken[Token::POS_LSPACE] . Token::toString($context->currentToken));
             $context->currentToken[Token::POS_LOTHER] = '';
@@ -765,13 +765,14 @@ class Validator
                 || ($lsp && !$token[Token::POS_ROTHER]) // final line
         )) {
             // handle partial
+            $leftSpace = isset($lmatch[2]) ? ($lmatch[1] . $lmatch[2]) : '';
             if ($token[Token::POS_OP] === '>') {
                 if (!$context->options->preventIndent) {
                     $context->tokens['partialind'] = $token[Token::POS_LSPACECTL] ? '' : $ind;
-                    $token[Token::POS_LSPACE] = (isset($lmatch[2]) ? ($lmatch[1] . $lmatch[2]) : '');
+                    $token[Token::POS_LSPACE] = $leftSpace;
                 }
             } else {
-                $token[Token::POS_LSPACE] = (isset($lmatch[2]) ? ($lmatch[1] . $lmatch[2]) : '');
+                $token[Token::POS_LSPACE] = $leftSpace;
             }
             $token[Token::POS_RSPACE] = $rmatch[3] ?? '';
         }

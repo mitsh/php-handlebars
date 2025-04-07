@@ -4,8 +4,6 @@ namespace DevTheorem\Handlebars;
 
 class Partial
 {
-    public static string $TMP_JS_FUNCTION_STR = "!!\aFuNcTiOn\a!!";
-
     /**
      * Include all partials when using dynamic partials
      */
@@ -90,19 +88,16 @@ class Partial
         $tmpContext->partialBlock = [];
         $tmpContext->partialStack[] = $name;
 
-        $code = Compiler::compileTemplate($tmpContext, str_replace('function', static::$TMP_JS_FUNCTION_STR, $template));
+        $code = Compiler::compileTemplate($tmpContext, $template);
         $context->merge($tmpContext);
 
         if (!$context->options->preventIndent) {
-            $sp = ', $sp';
             $code = preg_replace('/^/m', "'{$context->ops['separator']}\$sp{$context->ops['separator']}'", $code);
-            // callbacks inside partial should be aware of $sp
-            $code = preg_replace('/\bfunction\s*\(([^\(]*?)\)\s*{/', 'function(\\1)use($sp){', $code);
-            $code = preg_replace('/function\(\$cx, \$in, \$sp\)use\(\$sp\){/', 'function($cx, $in)use($sp){', $code);
-        } else {
-            $sp = '';
+            // remove extra spaces before partial
+            $code = preg_replace('/^\'\\.\\$sp\\.\'(\'\\.LR::p\\()/m', '$1', $code, 1);
+            // add spaces after partial
+            $code = preg_replace('/^(\'\\.LR::p\\(.+\\)\\.)(\'.+)/m', '$1\$sp.$2', $code, 1);
         }
-        $code = str_replace(static::$TMP_JS_FUNCTION_STR, 'function', $code);
-        return "function (\$cx, \$in{$sp}) {{$context->ops['op_start']}'$code'{$context->ops['op_end']}}";
+        return "function (\$cx, \$in, \$sp) {{$context->ops['op_start']}'$code'{$context->ops['op_end']}}";
     }
 }
