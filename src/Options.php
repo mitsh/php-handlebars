@@ -12,6 +12,8 @@ readonly class Options
         public bool $ignoreStandalone = false,
         public bool $explicitPartialContext = false,
         public array $helpers = [],
+		public ?\Closure $helpers_resolver = null,
         public array $partials = [],
+		public ?\Closure $partials_resolver = null,
     ) {}
 }

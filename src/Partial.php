@@ -55,6 +55,12 @@ class Partial
         if (isset($context->partials[$name])) {
             return $context->partials[$name];
         }
+		if (isset($context->partials_resolver)) {
+			$cnt = $context->partials_resolver->__invoke($context, $name);
+			if ($cnt !== null) {
+				return $cnt;
+			}
+		}
         return null;
     }
 

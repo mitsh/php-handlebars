@@ -30,9 +30,11 @@ final class Context
         public bool $compile = false,
         public array $parsed = [],
         public array $partials = [],
+        public ?\Closure $partials_resolver = null,
         public array $partialBlock = [],
         public array $inlinePartial = [],
         public array $helpers = [],
+        public ?\Closure $helpers_resolver = null,
         public string|false $rawBlock = false,
         public readonly array $ops = [
             'separator' => '.',
@@ -48,6 +50,9 @@ final class Context
         ],
     ) {
         $this->partials = $options->partials;
+
+		$this->partials_resolver = $options->partials_resolver;
+		$this->helpers_resolver = $options->helpers_resolver;
 
         foreach ($options->helpers as $name => $func) {
             $tn = is_int($name) ? $func : $name;
@@ -70,7 +75,9 @@ final class Context
     {
         $this->error = $context->error;
         $this->helpers = $context->helpers;
+		$this->helpers_resolver = $context->helpers_resolver;
         $this->partials = $context->partials;
+		$this->partials_resolver = $context->partials_resolver;
         $this->partialCode = $context->partialCode;
         $this->partialStack = $context->partialStack;
         $this->usedHelpers = $context->usedHelpers;
