@@ -6,12 +6,19 @@ use DevTheorem\Handlebars\Handlebars;
 use DevTheorem\Handlebars\HelperOptions;
 use DevTheorem\Handlebars\Options;
 use DevTheorem\Handlebars\SafeString;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @phpstan-type RegIssue array{id?: int, template: string, data?: array<mixed>, options?: Options, expected: string}
+ */
 class RegressionTest extends TestCase
 {
-    #[\PHPUnit\Framework\Attributes\DataProvider("issueProvider")]
-    public function testIssues($issue)
+    /**
+     * @param RegIssue $issue
+     */
+    #[DataProvider("issueProvider")]
+    public function testIssues(array $issue): void
     {
         $templateSpec = Handlebars::precompile($issue['template'], $issue['options'] ?? new Options());
         $context = Handlebars::getContext();
@@ -29,6 +36,9 @@ class RegressionTest extends TestCase
         $this->assertEquals($issue['expected'], $result, "PHP CODE:\n$templateSpec");
     }
 
+    /**
+     * @return list<array{RegIssue}>
+     */
     public static function issueProvider(): array
     {
         $test_helpers = ['ouch' => fn() => 'ok'];
@@ -1309,6 +1319,27 @@ class RegressionTest extends TestCase
                 'id' => 303,
                 'template' => '{{#*inline "t1"}} {{#if url}} <a /> {{else if imageUrl}} <img /> {{else}} <span /> {{/if}} {{/inline}}',
                 'expected' => '',
+            ],
+
+            [
+                'id' => 310,
+                'template' => <<<_tpl
+                    {{#custom-block 'some-text' data=(custom-helper 
+                      opt_a='foo'
+                      opt_b='bar'
+                    )}}...{{/custom-block}}
+                    _tpl,
+                'options' => new Options(
+                    helpers: [
+                        'custom-block' => function ($string, HelperOptions $opts) {
+                            return strtoupper($string) . '-' . $opts->hash['data'] . $opts->fn();
+                        },
+                        'custom-helper' => function (HelperOptions $options) {
+                            return $options->hash['opt_a'] . $options->hash['opt_b'];
+                        },
+                    ],
+                ),
+                'expected' => 'SOME-TEXT-foobar...',
             ],
 
             [

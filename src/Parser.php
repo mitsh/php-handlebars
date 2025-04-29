@@ -16,7 +16,7 @@ final class Parser
     /**
      * Get partial block id and fix the variable list
      *
-     * @param array<bool|int|string|array> $vars parsed token
+     * @param array<bool|int|string|array<mixed>> $vars parsed token
      */
     public static function getPartialBlock(array &$vars): int
     {
@@ -31,7 +31,8 @@ final class Parser
     /**
      * Get block params and fix the variable list
      *
-     * @param array<bool|int|string|array> $vars parsed token
+     * @param array<bool|int|string|array<mixed>> $vars parsed token
+     * @return array<mixed>
      */
     public static function getBlockParams(array &$vars): array
     {
@@ -144,9 +145,9 @@ final class Parser
      *
      * @param array<string> $token preg_match results
      *
-     * @return array<bool|int|array> Return parsed result
+     * @return array{bool,array<mixed>} Return parsed result
      */
-    public static function parse(array &$token, Context $context): array
+    public static function parse(array $token, Context $context): array
     {
         $vars = static::analyze($token[Token::POS_INNERTAG], $context);
         if ($token[Token::POS_OP] === '>') {
@@ -171,17 +172,18 @@ final class Parser
     /**
      * Get partial name from "foo" or [foo] or \'foo\'
      *
-     * @param array<bool|int|array> $vars parsed token
+     * @param array<bool|int|string> $vars parsed token
      * @param int $pos position of partial name
      *
      * @return array<string>|null Return one element partial name array
      */
-    public static function getPartialName(array &$vars, int $pos = 0): ?array
+    public static function getPartialName(array $vars, int $pos = 0): ?array
     {
-        if (!isset($vars[$pos])) {
+        if (!isset($vars[$pos]) || preg_match(SafeString::IS_SUBEXP_SEARCH, $vars[$pos])) {
             return null;
         }
-        return preg_match(SafeString::IS_SUBEXP_SEARCH, $vars[$pos]) ? null : [preg_replace('/^("(.+)")|(\\[(.+)\\])|(\\\\\'(.+)\\\\\')$/', '$2$4$6', $vars[$pos])];
+        assert(is_string($vars[$pos]));
+        return [preg_replace('/^("(.+)")|(\\[(.+)\\])|(\\\\\'(.+)\\\\\')$/', '$2$4$6', $vars[$pos])];
     }
 
     /**
@@ -189,7 +191,7 @@ final class Parser
      *
      * @param string $expression the full string of a sub expression
      *
-     * @return array<bool|int|array> Return parsed result
+     * @return array{int, array<mixed>, string} Return parsed result
      */
     public static function subexpression(string $expression, Context $context): array
     {
@@ -206,7 +208,7 @@ final class Parser
     /**
      * Check a parsed result is a subexpression or not
      *
-     * @param array<string|int|array> $var
+     * @param array<string|int|array<mixed>> $var
      */
     public static function isSubExp(array $var): bool
     {
@@ -216,10 +218,10 @@ final class Parser
     /**
      * Analyze parsed token for advanced variables.
      *
-     * @param array<bool|int|array> $vars parsed token
+     * @param list<string> $vars parsed token
      * @param string $token original token
      *
-     * @return array<bool|int|array> Return parsed result
+     * @return array<bool|int|array<mixed>> Return parsed result
      */
     protected static function advancedVariable(array $vars, Context $context, string $token): array
     {
@@ -239,8 +241,8 @@ final class Parser
                 continue;
             }
 
-            if (preg_match('/^((\\[([^\\]]+)\\])|([^=^\\["\']+))=(.+)$/', $var, $m)) {
-                $idx = $m[3] ? $m[3] : $m[4];
+            if (preg_match('/^((\\[([^\\]]+)\\])|([^=^\\["\']+))=(.+)$/s', $var, $m)) {
+                $idx = $m[3] ?: $m[4];
                 $var = $m[5];
                 // handle foo=(...)
                 if (preg_match(SafeString::IS_SUBEXP_SEARCH, $var)) {
@@ -332,7 +334,7 @@ final class Parser
      *
      * @param string $token preg_match results
      *
-     * @return array<bool|int|array> Return parsed result
+     * @return list<string> Return parsed result
      */
     protected static function analyze(string $token, Context $context): array
     {
@@ -367,7 +369,7 @@ final class Parser
                         $stack += strlen($m[2]);
                     }
                     // end an argument when token ends with expected character (ignoring whitespace + first instance)
-                    if (substr($t, -1, 1) === $expect && !preg_match('/^\s+' . preg_quote($expect) . '$/', $prev)) {
+                    if (substr($t, -1, 1) === $expect && !preg_match('/^\s+' . preg_quote($expect, '/') . '$/', $prev)) {
                         if ($stack > 0 && !$quotes) {
                             preg_match('/(\\)+)$/', $t, $matchedq);
                             $stack -= isset($matchedq[0]) ? strlen($matchedq[0]) : 1;
